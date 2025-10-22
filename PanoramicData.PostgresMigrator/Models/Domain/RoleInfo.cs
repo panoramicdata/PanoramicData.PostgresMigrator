@@ -1,42 +1,42 @@
 namespace PanoramicData.PostgresMigrator.Models.Domain;
 
 /// <summary>
-/// Information about a database
+/// Information about a role/user
 /// </summary>
-public class DatabaseInfo
+public class RoleInfo
 {
 	/// <summary>
-	/// Database name
+	/// Role name
 	/// </summary>
 	public required string Name { get; set; }
 
 	/// <summary>
-	/// Owner role
+	/// Whether this is a superuser
 	/// </summary>
-	public string? Owner { get; set; }
+	public bool IsSuperuser { get; set; }
 
 	/// <summary>
-	/// Encoding (e.g., UTF8)
+	/// Whether this role can login
 	/// </summary>
-	public string? Encoding { get; set; }
+	public bool CanLogin { get; set; }
 
 	/// <summary>
-	/// Tables in this database
+	/// Password hash (if accessible)
 	/// </summary>
-	public List<TableInfo> Tables { get; set; } = [];
+	public string? PasswordHash { get; set; }
 
 	/// <summary>
-	/// Sequences in this database
+	/// Whether password was successfully migrated
 	/// </summary>
-	public List<SequenceInfo> Sequences { get; set; } = [];
+	public bool PasswordMigrated { get; set; }
 
 	/// <summary>
-	/// Extensions in this database
+	/// Whether role exists on destination
 	/// </summary>
-	public List<ExtensionInfo> Extensions { get; set; } = [];
+	public bool ExistsOnDestination { get; set; }
 
 	/// <summary>
-	/// Sync status for this database
+	/// Sync status
 	/// </summary>
 	public SyncStatus Status { get; set; } = SyncStatus.NotStarted;
 

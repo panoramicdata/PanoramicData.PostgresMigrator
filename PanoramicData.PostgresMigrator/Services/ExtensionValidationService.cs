@@ -1,38 +1,28 @@
 using Npgsql;
+using PanoramicData.PostgresMigrator.Interfaces;
 
 namespace PanoramicData.PostgresMigrator.Services;
 
 /// <summary>
 /// Service for validating PostgreSQL extensions
 /// </summary>
-public class ExtensionValidationService : IExtensionValidationService
+public class ExtensionValidationService(
+	ISchemaDiscoveryService schemaDiscovery,
+	IPostgresConnectionFactory connectionFactory,
+	ILogger<ExtensionValidationService> logger) : IExtensionValidationService
 {
-	private readonly ISchemaDiscoveryService _schemaDiscovery;
-	private readonly IPostgresConnectionFactory _connectionFactory;
-	private readonly ILogger<ExtensionValidationService> _logger;
-
-	public ExtensionValidationService(
-		ISchemaDiscoveryService schemaDiscovery,
-		IPostgresConnectionFactory connectionFactory,
-		ILogger<ExtensionValidationService> logger)
-	{
-		_schemaDiscovery = schemaDiscovery;
-		_connectionFactory = connectionFactory;
-		_logger = logger;
-	}
-
 	public async Task<List<string>> ValidateExtensionsAsync(
 		string sourceName,
 		string destinationName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Validating extensions for {Source} ? {Destination}",
+		logger.LogInformation("Validating extensions for {Source} ? {Destination}",
 			sourceName, destinationName);
 
 		var errors = new List<string>();
 
 		// Get all databases from source
-		var sourceDatabases = await _schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
+		var sourceDatabases = await schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
 
 		// Get available extensions on destination
 		var availableExtensions = await GetAvailableExtensionsAsync(destinationName, cancellationToken);
@@ -41,7 +31,7 @@ public class ExtensionValidationService : IExtensionValidationService
 		// Check each source database for required extensions
 		foreach (var sourceDb in sourceDatabases)
 		{
-			var sourceExtensions = await _schemaDiscovery.DiscoverExtensionsAsync(sourceName, sourceDb.Name, cancellationToken);
+			var sourceExtensions = await schemaDiscovery.DiscoverExtensionsAsync(sourceName, sourceDb.Name, cancellationToken);
 
 			foreach (var extension in sourceExtensions)
 			{
@@ -49,18 +39,18 @@ public class ExtensionValidationService : IExtensionValidationService
 				{
 					var error = $"Extension '{extension.Name}' (required by database '{sourceDb.Name}') is not available on destination instance '{destinationName}'";
 					errors.Add(error);
-					_logger.LogError("{Error}", error);
+					logger.LogError("{Error}", error);
 				}
 			}
 		}
 
 		if (errors.Count == 0)
 		{
-			_logger.LogInformation("All required extensions are available on destination");
+			logger.LogInformation("All required extensions are available on destination");
 		}
 		else
 		{
-			_logger.LogError("Found {Count} missing extensions on destination", errors.Count);
+			logger.LogError("Found {Count} missing extensions on destination", errors.Count);
 		}
 
 		return errors;
@@ -70,9 +60,9 @@ public class ExtensionValidationService : IExtensionValidationService
 		string instanceName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogDebug("Getting available extensions on {Instance}", instanceName);
+		logger.LogDebug("Getting available extensions on {Instance}", instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
 
 		var extensions = new List<string>();
 
@@ -87,7 +77,7 @@ public class ExtensionValidationService : IExtensionValidationService
 			extensions.Add(reader.GetString(0));
 		}
 
-		_logger.LogDebug("Found {Count} available extensions on {Instance}",
+		logger.LogDebug("Found {Count} available extensions on {Instance}",
 			extensions.Count, instanceName);
 
 		return extensions;

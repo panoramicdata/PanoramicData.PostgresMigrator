@@ -77,7 +77,7 @@ public class PostgresMigratorConfig
 				throw new InvalidOperationException($"Instance '{kvp.Key}' has no password specified.");
 			}
 
-			if (kvp.Value.Port <= 0 || kvp.Value.Port > 65535)
+			if (kvp.Value.Port is <= 0 or > 65535)
 			{
 				throw new InvalidOperationException($"Instance '{kvp.Key}' has invalid port: {kvp.Value.Port}");
 			}

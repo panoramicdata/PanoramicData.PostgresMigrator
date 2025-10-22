@@ -35,6 +35,7 @@ public class PostgresInstanceConfig
 		{
 			connString += $";Database={database}";
 		}
+
 		return connString;
 	}
 }

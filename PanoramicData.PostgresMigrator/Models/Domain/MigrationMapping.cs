@@ -56,7 +56,7 @@ public class MigrationMapping
 	public string? ErrorMessage { get; set; }
 
 	/// <summary>
-	/// Whether cutover ready indicator is shown
+	/// Whether cut-over ready indicator is shown
 	/// </summary>
-	public bool IsCutoverReady => Status == SyncStatus.CutoverReady;
+	public bool IsCutOverReady => Status == SyncStatus.CutoverReady;
 }

@@ -26,9 +26,9 @@ public class ReplicationConfig
 	public int WalLagThresholdMinutes { get; set; } = 5;
 
 	/// <summary>
-	/// Cutover ready stability duration in seconds (lag must be stable for this long)
+	/// Cut-over ready stability duration in seconds (lag must be stable for this long)
 	/// </summary>
-	public int CutoverReadyStabilitySeconds { get; set; } = 30;
+	public int CutOverReadyStabilitySeconds { get; set; } = 30;
 
 	/// <summary>
 	/// Maximum retry attempts for transient failures (default: 5)
@@ -36,7 +36,7 @@ public class ReplicationConfig
 	public int MaxRetryAttempts { get; set; } = 5;
 
 	/// <summary>
-	/// Initial retry delay in milliseconds for exponential backoff (default: 1000ms = 1s)
+	/// Initial retry delay in milliseconds for exponential back-off (default: 1000ms = 1s)
 	/// </summary>
 	public int InitialRetryDelayMs { get; set; } = 1000;
 }

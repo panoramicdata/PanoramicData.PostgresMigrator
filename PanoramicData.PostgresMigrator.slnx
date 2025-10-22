@@ -8,7 +8,11 @@
     <File Path="version.json" />
   </Folder>
   <Folder Name="/Specification/">
+    <File Path="Answers to Questions.md" />
+    <File Path="Implementation Plan - Updated.md" />
+    <File Path="Implementation Plan.md" />
     <File Path="Master Plan.md" />
+    <File Path="Questions for Clarification.md" />
   </Folder>
   <Project Path="PanoramicData.PostgresMigrator/PanoramicData.PostgresMigrator.csproj" />
 </Solution>

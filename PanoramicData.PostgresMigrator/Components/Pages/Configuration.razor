@@ -1,0 +1,113 @@
+@page "/configuration"
+@using Microsoft.Extensions.Options
+@using PanoramicData.PostgresMigrator.Models.Configuration
+@inject IOptions<PostgresMigratorConfig> ConfigOptions
+@rendermode InteractiveServer
+
+<PageTitle>Configuration - PostgreSQL Migrator</PageTitle>
+
+<h1>Configuration</h1>
+
+<div class="alert alert-warning">
+    <strong>Read-Only View</strong> - Configuration is loaded from appsettings.json or environment variables (prefix: PGMIGRATOR_).
+</div>
+
+@if (_config == null || _config.Instances.Count == 0)
+{
+    <div class="alert alert-info">
+   <strong>No Configuration</strong> - Please configure instances and mappings in appsettings.json or via environment variables.
+        <br />
+        See <code>appsettings.Development.json</code> for an example configuration.
+    </div>
+}
+else
+{
+    <h2>Instances</h2>
+    <table class="table table-striped">
+<thead>
+            <tr>
+              <th>Name</th>
+           <th>Server</th>
+       <th>Port</th>
+     <th>Username</th>
+     <th>Password</th>
+            </tr>
+    </thead>
+        <tbody>
+            @foreach (var instance in _config.Instances)
+     {
+  <tr>
+   <td><strong>@instance.Key</strong></td>
+                <td>@instance.Value.Server</td>
+      <td>@instance.Value.Port</td>
+   <td>@instance.Value.Username</td>
+         <td><code>***hidden***</code></td>
+    </tr>
+            }
+        </tbody>
+    </table>
+
+    <h2>Mappings</h2>
+    <table class="table table-striped">
+        <thead>
+     <tr>
+             <th>Source ? Destination</th>
+      <th>Role Conflict Strategy</th>
+      <th>Fallback Password</th>
+            </tr>
+        </thead>
+        <tbody>
+    @foreach (var mapping in _config.Mappings)
+            {
+            <tr>
+  <td><strong>@mapping.SourceInstance</strong> ? <strong>@mapping.DestinationInstance</strong></td>
+      <td><span class="badge bg-info">@mapping.RoleConflictStrategy</span></td>
+ <td>@(string.IsNullOrEmpty(mapping.FallbackPassword) ? "Not Set" : "***hidden***")</td>
+</tr>
+     }
+        </tbody>
+    </table>
+
+    <h2>Replication Settings</h2>
+    <table class="table">
+    <tbody>
+            <tr>
+     <th>Rate Limit</th>
+                <td>@_config.Replication.RateLimitMBps MB/s</td>
+     </tr>
+  <tr>
+ <th>UI Refresh Interval</th>
+   <td>@_config.Replication.UIRefreshIntervalSeconds seconds</td>
+       </tr>
+     <tr>
+       <th>WAL Lag Threshold (MB)</th>
+     <td>@_config.Replication.WalLagThresholdMB MB</td>
+     </tr>
+      <tr>
+         <th>WAL Lag Threshold (Minutes)</th>
+     <td>@_config.Replication.WalLagThresholdMinutes minutes</td>
+            </tr>
+         <tr>
+         <th>Cutover Ready Stability</th>
+         <td>@_config.Replication.CutoverReadyStabilitySeconds seconds</td>
+            </tr>
+    <tr>
+       <th>Max Retry Attempts</th>
+   <td>@_config.Replication.MaxRetryAttempts</td>
+    </tr>
+     <tr>
+    <th>Initial Retry Delay</th>
+        <td>@_config.Replication.InitialRetryDelayMs ms</td>
+            </tr>
+     </tbody>
+    </table>
+}
+
+@code {
+    private PostgresMigratorConfig? _config;
+
+    protected override void OnInitialized()
+    {
+        _config = ConfigOptions.Value;
+    }
+}

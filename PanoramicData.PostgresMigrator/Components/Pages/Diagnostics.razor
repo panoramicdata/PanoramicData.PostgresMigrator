@@ -1,0 +1,213 @@
+@page "/diagnostics"
+@using PanoramicData.PostgresMigrator.Services
+@inject IConnectionHealthCheckService HealthCheckService
+@inject ISchemaDiscoveryService SchemaDiscovery
+@inject IConflictDetectionService ConflictDetection
+@inject IExtensionValidationService ExtensionValidation
+@inject ILogger<Diagnostics> Logger
+@rendermode InteractiveServer
+
+<PageTitle>Diagnostics - PostgreSQL Migrator</PageTitle>
+
+<h1>Diagnostics</h1>
+
+<div class="alert alert-info">
+    <strong>Phase 2 Complete!</strong> PostgreSQL Core Services are functional.
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="RunHealthCheck" disabled="@_isRunning">
+      @if (_isRunning)
+      {
+   <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+      Run Health Check
+    </button>
+    <button class="btn btn-secondary ms-2" @onclick="DiscoverSchemas" disabled="@_isRunning">
+        Discover Schemas
+    </button>
+ <button class="btn btn-warning ms-2" @onclick="DetectConflicts" disabled="@_isRunning">
+        Detect Conflicts
+    </button>
+</div>
+
+@if (_healthResults != null)
+{
+    <h2>Health Check Results</h2>
+    <table class="table table-sm">
+<thead>
+   <tr>
+                <th>Instance</th>
+ <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+            @foreach (var result in _healthResults)
+    {
+   <tr>
+         <td>@result.Key</td>
+       <td>
+     @if (result.Value)
+              {
+         <span class="badge bg-success">? Healthy</span>
+         }
+              else
+ {
+     <span class="badge bg-danger">? Unhealthy</span>
+          }
+        </td>
+           </tr>
+     }
+        </tbody>
+    </table>
+}
+
+@if (_databases != null)
+{
+  <h2>Discovered Databases</h2>
+    @foreach (var kvp in _databases)
+    {
+        <h4>@kvp.Key</h4>
+        <table class="table table-sm">
+            <thead>
+        <tr>
+ <th>Database</th>
+         <th>Owner</th>
+                    <th>Encoding</th>
+ </tr>
+            </thead>
+            <tbody>
+ @foreach (var db in kvp.Value)
+        {
+        <tr>
+       <td><code>@db.Name</code></td>
+             <td>@db.Owner</td>
+          <td>@db.Encoding</td>
+ </tr>
+        }
+       </tbody>
+      </table>
+    }
+}
+
+@if (_conflicts != null)
+{
+    <h2>Detected Conflicts</h2>
+    @if (_conflicts.Count == 0)
+ {
+        <div class="alert alert-success">No conflicts detected!</div>
+    }
+    else
+    {
+      <table class="table table-sm">
+        <thead>
+                <tr>
+      <th>Type</th>
+          <th>Object</th>
+         <th>Description</th>
+  <th>Blocking</th>
+             </tr>
+            </thead>
+   <tbody>
+   @foreach (var conflict in _conflicts)
+         {
+     <tr class="@(conflict.IsBlocking ? "table-danger" : "table-warning")">
+     <td><span class="badge bg-secondary">@conflict.ConflictType</span></td>
+   <td><code>@conflict.ObjectName</code></td>
+         <td>@conflict.Description</td>
+       <td>
+   @if (conflict.IsBlocking)
+        {
+     <span class="badge bg-danger">Blocking</span>
+    }
+     else
+ {
+                 <span class="badge bg-warning">Non-blocking</span>
+           }
+        </td>
+          </tr>
+ }
+            </tbody>
+        </table>
+    }
+}
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">
+   <strong>Error:</strong> @_errorMessage
+    </div>
+}
+
+@code {
+    private Dictionary<string, bool>? _healthResults;
+    private Dictionary<string, List<Models.Domain.DatabaseInfo>>? _databases;
+    private List<Models.Domain.ConflictInfo>? _conflicts;
+    private string? _errorMessage;
+    private bool _isRunning;
+
+    private async Task RunHealthCheck()
+ {
+        _isRunning = true;
+        _errorMessage = null;
+        try
+        {
+      _healthResults = await HealthCheckService.CheckAllInstancesAsync();
+        }
+     catch (Exception ex)
+        {
+  _errorMessage = ex.Message;
+       Logger.LogError(ex, "Health check failed");
+        }
+        finally
+        {
+    _isRunning = false;
+        }
+    }
+
+    private async Task DiscoverSchemas()
+{
+        _isRunning = true;
+        _errorMessage = null;
+        try
+{
+          _databases = new Dictionary<string, List<Models.Domain.DatabaseInfo>>();
+
+     // Discover databases on Source1
+     var source1Dbs = await SchemaDiscovery.DiscoverDatabasesAsync("Source1");
+            _databases["Source1"] = source1Dbs;
+
+      // Discover databases on Dest1
+            var dest1Dbs = await SchemaDiscovery.DiscoverDatabasesAsync("Dest1");
+    _databases["Dest1"] = dest1Dbs;
+        }
+        catch (Exception ex)
+        {
+ _errorMessage = ex.Message;
+ Logger.LogError(ex, "Schema discovery failed");
+        }
+        finally
+        {
+_isRunning = false;
+        }
+    }
+
+    private async Task DetectConflicts()
+    {
+        _isRunning = true;
+        _errorMessage = null;
+    try
+  {
+   _conflicts = await ConflictDetection.DetectConflictsAsync("Source1", "Dest1");
+        }
+        catch (Exception ex)
+        {
+  _errorMessage = ex.Message;
+      Logger.LogError(ex, "Conflict detection failed");
+        }
+        finally
+        {
+            _isRunning = false;
+     }
+    }
+}

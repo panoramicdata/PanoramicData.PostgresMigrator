@@ -1,0 +1,72 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard - PostgreSQL Migrator</PageTitle>
+
+<h1>PostgreSQL Migration Dashboard</h1>
+
+<div class="alert alert-success">
+  <strong>Phase 2 Complete!</strong> PostgreSQL Core Services are now functional.
+    <br />
+    ? Connection Management | ? Schema Discovery | ? Conflict Detection | ? Extension Validation
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+      <div class="card">
+       <div class="card-header">
+ <h5>Quick Start</h5>
+       </div>
+   <div class="card-body">
+  <p>Test the Phase 2 services:</p>
+     <ul>
+ <li>Go to <a href="/diagnostics">Diagnostics</a> to test connections and schema discovery</li>
+         <li>Go to <a href="/configuration">Configuration</a> to view loaded settings</li>
+      </ul>
+         </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+  <div class="card">
+            <div class="card-header">
+     <h5>About</h5>
+    </div>
+     <div class="card-body">
+   <p>
+       This tool enables zero-downtime migration of PostgreSQL databases from version 15+
+   to version 18+ using native logical replication.
+             </p>
+      <p><strong>Current Status:</strong></p>
+      <ul>
+      <li>? Phase 1: Foundation & Architecture</li>
+    <li>? Phase 2: PostgreSQL Core Services</li>
+     <li>? Phase 3: Native Replication (Next)</li>
+        </ul>
+    </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h2>Features</h2>
+    <div class="row">
+        <div class="col-md-4">
+  <h5>?? Connection Management</h5>
+    <p>Robust connection handling with retry policies and health checks</p>
+        </div>
+ <div class="col-md-4">
+      <h5>?? Schema Discovery</h5>
+   <p>Discover tables, partitions, sequences, roles, and extensions</p>
+        </div>
+        <div class="col-md-4">
+    <h5>?? Conflict Detection</h5>
+        <p>Detect and prevent destructive operations before migration</p>
+ </div>
+    </div>
+</div>
+
+@code {
+    // TODO: Inject IUiStateService when implemented in Phase 4
+    // TODO: Display live migration status from Phase 5
+}

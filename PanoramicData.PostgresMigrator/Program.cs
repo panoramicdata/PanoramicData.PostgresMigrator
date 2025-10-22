@@ -2,6 +2,7 @@
 using PanoramicData.PostgresMigrator.Models.Configuration;
 using PanoramicData.PostgresMigrator.Components;
 using PanoramicData.PostgresMigrator.Services;
+using PanoramicData.PostgresMigrator.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

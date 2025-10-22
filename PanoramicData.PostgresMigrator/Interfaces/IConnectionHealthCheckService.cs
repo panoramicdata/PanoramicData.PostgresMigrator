@@ -1,4 +1,4 @@
-namespace PanoramicData.PostgresMigrator.Services;
+namespace PanoramicData.PostgresMigrator.Interfaces;
 
 /// <summary>
 /// Health check service for PostgreSQL connections

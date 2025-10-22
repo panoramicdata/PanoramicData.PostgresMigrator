@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace PanoramicData.PostgresMigrator.Services;
+namespace PanoramicData.PostgresMigrator.Interfaces;
 
 /// <summary>
 /// Factory for creating PostgreSQL connections

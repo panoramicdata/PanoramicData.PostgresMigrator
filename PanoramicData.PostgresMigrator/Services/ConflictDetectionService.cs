@@ -1,3 +1,4 @@
+using PanoramicData.PostgresMigrator.Interfaces;
 using PanoramicData.PostgresMigrator.Models.Domain;
 
 namespace PanoramicData.PostgresMigrator.Services;
@@ -5,28 +6,17 @@ namespace PanoramicData.PostgresMigrator.Services;
 /// <summary>
 /// Service for detecting conflicts between source and destination
 /// </summary>
-public class ConflictDetectionService : IConflictDetectionService
+public class ConflictDetectionService(
+	ISchemaDiscoveryService schemaDiscovery,
+	IPostgresConnectionFactory connectionFactory,
+	ILogger<ConflictDetectionService> logger) : IConflictDetectionService
 {
-	private readonly ISchemaDiscoveryService _schemaDiscovery;
-	private readonly IPostgresConnectionFactory _connectionFactory;
-	private readonly ILogger<ConflictDetectionService> _logger;
-
-	public ConflictDetectionService(
-		ISchemaDiscoveryService schemaDiscovery,
-		IPostgresConnectionFactory connectionFactory,
-		ILogger<ConflictDetectionService> logger)
-	{
-		_schemaDiscovery = schemaDiscovery;
-		_connectionFactory = connectionFactory;
-		_logger = logger;
-	}
-
 	public async Task<List<ConflictInfo>> DetectConflictsAsync(
 		string sourceName,
 		string destinationName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Detecting conflicts between {Source} and {Destination}",
+		logger.LogInformation("Detecting conflicts between {Source} and {Destination}",
 			sourceName, destinationName);
 
 		var allConflicts = new List<ConflictInfo>();
@@ -41,7 +31,7 @@ public class ConflictDetectionService : IConflictDetectionService
 		allConflicts.AddRange(extensionConflicts);
 
 		var blockingCount = allConflicts.Count(c => c.IsBlocking);
-		_logger.LogInformation("Detected {Total} conflicts ({Blocking} blocking) for {Source} ? {Destination}",
+		logger.LogInformation("Detected {Total} conflicts ({Blocking} blocking) for {Source} ? {Destination}",
 			allConflicts.Count, blockingCount, sourceName, destinationName);
 
 		return allConflicts;
@@ -54,8 +44,8 @@ public class ConflictDetectionService : IConflictDetectionService
 	{
 		var conflicts = new List<ConflictInfo>();
 
-		var sourceDatabases = await _schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
-		var destDatabases = await _schemaDiscovery.DiscoverDatabasesAsync(destinationName, cancellationToken);
+		var sourceDatabases = await schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
+		var destDatabases = await schemaDiscovery.DiscoverDatabasesAsync(destinationName, cancellationToken);
 
 		var destDatabaseNames = destDatabases.Select(d => d.Name).ToHashSet();
 
@@ -84,8 +74,8 @@ public class ConflictDetectionService : IConflictDetectionService
 	{
 		var conflicts = new List<ConflictInfo>();
 
-		var sourceRoles = await _schemaDiscovery.DiscoverRolesAsync(sourceName, cancellationToken);
-		var destRoles = await _schemaDiscovery.DiscoverRolesAsync(destinationName, cancellationToken);
+		var sourceRoles = await schemaDiscovery.DiscoverRolesAsync(sourceName, cancellationToken);
+		var destRoles = await schemaDiscovery.DiscoverRolesAsync(destinationName, cancellationToken);
 
 		var destRoleNames = destRoles.Select(r => r.Name).ToHashSet();
 
@@ -121,25 +111,25 @@ public class ConflictDetectionService : IConflictDetectionService
 	{
 		var conflicts = new List<ConflictInfo>();
 
-		var sourceDatabases = await _schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
+		var sourceDatabases = await schemaDiscovery.DiscoverDatabasesAsync(sourceName, cancellationToken);
 
 		foreach (var sourceDb in sourceDatabases)
 		{
-			var sourceExtensions = await _schemaDiscovery.DiscoverExtensionsAsync(sourceName, sourceDb.Name, cancellationToken);
+			var sourceExtensions = await schemaDiscovery.DiscoverExtensionsAsync(sourceName, sourceDb.Name, cancellationToken);
 
 			// Check if destination database exists
-			var destDatabases = await _schemaDiscovery.DiscoverDatabasesAsync(destinationName, cancellationToken);
+			var destDatabases = await schemaDiscovery.DiscoverDatabasesAsync(destinationName, cancellationToken);
 			var destDbExists = destDatabases.Any(d => d.Name == sourceDb.Name);
 
 			List<ExtensionInfo> destExtensions;
 			if (destDbExists)
 			{
-				destExtensions = await _schemaDiscovery.DiscoverExtensionsAsync(destinationName, sourceDb.Name, cancellationToken);
+				destExtensions = await schemaDiscovery.DiscoverExtensionsAsync(destinationName, sourceDb.Name, cancellationToken);
 			}
 			else
 			{
 				// Destination database doesn't exist yet, so check template database
-				destExtensions = await _schemaDiscovery.DiscoverExtensionsAsync(destinationName, "postgres", cancellationToken);
+				destExtensions = await schemaDiscovery.DiscoverExtensionsAsync(destinationName, "postgres", cancellationToken);
 			}
 
 			var destExtensionNames = destExtensions.Select(e => e.Name).ToHashSet();
@@ -172,7 +162,7 @@ public class ConflictDetectionService : IConflictDetectionService
 
 		try
 		{
-			await using var connection = await _connectionFactory.CreateConnectionAsync(destinationName, "postgres", cancellationToken);
+			await using var connection = await connectionFactory.CreateConnectionAsync(destinationName, "postgres", cancellationToken);
 
 			await using var cmd = connection.CreateCommand();
 			cmd.CommandText = @"
@@ -198,7 +188,7 @@ public class ConflictDetectionService : IConflictDetectionService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex, "Could not check active connections for {Database} on {Destination}",
+			logger.LogWarning(ex, "Could not check active connections for {Database} on {Destination}",
 				database, destinationName);
 		}
 

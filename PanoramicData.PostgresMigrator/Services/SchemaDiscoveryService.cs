@@ -1,4 +1,5 @@
 using Npgsql;
+using PanoramicData.PostgresMigrator.Interfaces;
 using PanoramicData.PostgresMigrator.Models.Domain;
 
 namespace PanoramicData.PostgresMigrator.Services;
@@ -6,26 +7,17 @@ namespace PanoramicData.PostgresMigrator.Services;
 /// <summary>
 /// Service for discovering schema objects in PostgreSQL databases
 /// </summary>
-public class SchemaDiscoveryService : ISchemaDiscoveryService
+public class SchemaDiscoveryService(
+	IPostgresConnectionFactory connectionFactory,
+	ILogger<SchemaDiscoveryService> logger) : ISchemaDiscoveryService
 {
-	private readonly IPostgresConnectionFactory _connectionFactory;
-	private readonly ILogger<SchemaDiscoveryService> _logger;
-
-	public SchemaDiscoveryService(
-		IPostgresConnectionFactory connectionFactory,
-		ILogger<SchemaDiscoveryService> logger)
-	{
-		_connectionFactory = connectionFactory;
-		_logger = logger;
-	}
-
 	public async Task<List<DatabaseInfo>> DiscoverDatabasesAsync(
 		string instanceName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Discovering databases on {Instance}", instanceName);
+		logger.LogInformation("Discovering databases on {Instance}", instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
 
 		var databases = new List<DatabaseInfo>();
 
@@ -50,7 +42,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogInformation("Discovered {Count} databases on {Instance}",
+		logger.LogInformation("Discovered {Count} databases on {Instance}",
 			databases.Count, instanceName);
 
 		return databases;
@@ -61,10 +53,10 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 		string database,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Discovering tables in {Database} on {Instance}",
+		logger.LogInformation("Discovering tables in {Database} on {Instance}",
 			database, instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
 
 		var tables = new List<TableInfo>();
 
@@ -92,7 +84,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogInformation("Discovered {Count} tables in {Database}",
+		logger.LogInformation("Discovered {Count} tables in {Database}",
 			tables.Count, database);
 
 		return tables;
@@ -105,10 +97,10 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 		string tableName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogDebug("Discovering partitions for {Schema}.{Table} in {Database} on {Instance}",
+		logger.LogDebug("Discovering partitions for {Schema}.{Table} in {Database} on {Instance}",
 			schema, tableName, database, instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
 
 		var partitions = new List<PartitionInfo>();
 
@@ -147,7 +139,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogDebug("Discovered {Count} partitions for {Schema}.{Table}",
+		logger.LogDebug("Discovered {Count} partitions for {Schema}.{Table}",
 			partitions.Count, schema, tableName);
 
 		return partitions;
@@ -158,10 +150,10 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 		string database,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Discovering sequences in {Database} on {Instance}",
+		logger.LogInformation("Discovering sequences in {Database} on {Instance}",
 			database, instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
 
 		var sequences = new List<SequenceInfo>();
 
@@ -192,7 +184,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogInformation("Discovered {Count} sequences in {Database}",
+		logger.LogInformation("Discovered {Count} sequences in {Database}",
 			sequences.Count, database);
 
 		return sequences;
@@ -202,9 +194,9 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 		string instanceName,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Discovering roles on {Instance}", instanceName);
+		logger.LogInformation("Discovering roles on {Instance}", instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, "postgres", cancellationToken);
 
 		var roles = new List<RoleInfo>();
 
@@ -230,7 +222,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogInformation("Discovered {Count} roles on {Instance}",
+		logger.LogInformation("Discovered {Count} roles on {Instance}",
 			roles.Count, instanceName);
 
 		return roles;
@@ -241,10 +233,10 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 		string database,
 		CancellationToken cancellationToken = default)
 	{
-		_logger.LogInformation("Discovering extensions in {Database} on {Instance}",
+		logger.LogInformation("Discovering extensions in {Database} on {Instance}",
 			database, instanceName);
 
-		await using var connection = await _connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
+		await using var connection = await connectionFactory.CreateConnectionAsync(instanceName, database, cancellationToken);
 
 		var extensions = new List<ExtensionInfo>();
 
@@ -268,7 +260,7 @@ public class SchemaDiscoveryService : ISchemaDiscoveryService
 			});
 		}
 
-		_logger.LogInformation("Discovered {Count} extensions in {Database}",
+		logger.LogInformation("Discovered {Count} extensions in {Database}",
 			extensions.Count, database);
 
 		return extensions;

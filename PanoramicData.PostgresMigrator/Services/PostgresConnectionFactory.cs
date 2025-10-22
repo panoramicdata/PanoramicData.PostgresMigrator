@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Options;
 using Npgsql;
+using PanoramicData.PostgresMigrator.Interfaces;
+using PanoramicData.PostgresMigrator.Models.Configuration;
 using Polly;
 using Polly.Retry;
-using PanoramicData.PostgresMigrator.Models.Configuration;
 
 namespace PanoramicData.PostgresMigrator.Services;
 

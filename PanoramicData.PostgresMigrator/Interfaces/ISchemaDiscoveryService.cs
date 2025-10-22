@@ -1,6 +1,6 @@
 using PanoramicData.PostgresMigrator.Models.Domain;
 
-namespace PanoramicData.PostgresMigrator.Services;
+namespace PanoramicData.PostgresMigrator.Interfaces;
 
 /// <summary>
 /// Service for discovering schema objects in PostgreSQL databases

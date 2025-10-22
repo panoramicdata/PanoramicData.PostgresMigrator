@@ -1,6 +1,6 @@
 using PanoramicData.PostgresMigrator.Models.Domain;
 
-namespace PanoramicData.PostgresMigrator.Services;
+namespace PanoramicData.PostgresMigrator.Interfaces;
 
 /// <summary>
 /// Service for validating PostgreSQL extensions

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="global.json" />
+    <File Path="PanoramicData.PostgresMigrator.dic" />
+    <File Path="version.json" />
+  </Folder>
+  <Folder Name="/Specification/">
+    <File Path="Master Plan.md" />
+  </Folder>
+  <Project Path="PanoramicData.PostgresMigrator/PanoramicData.PostgresMigrator.csproj" />
+</Solution>
